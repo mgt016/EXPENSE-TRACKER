@@ -7,6 +7,14 @@ const path = require('path');
 var useragent = require('express-useragent');
 
 
+
+const router = require('./routes/authRoutes');
+const expenseRoutes = require('./routes/expenseRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
+
+
+
+
 let app = express();
 app.use(bodyParser.urlencoded(
     { extended: true , limit: '150mb' }));
@@ -41,7 +49,7 @@ app.use((req,res,next) => {
     
 });
 
-mongoose.connect('mongodb+srv://milangthomas00:kunaguero16@cluster0.xdf6qpy.mongodb.net/Expense-Tracker?retryWrites=true&w=majority&appName=Cluster0'
+mongoose.connect('mongodb+srv://milangthomas00:kunaguero16@cluster0.xdf6qpy.mongodb.net/EXPENSE-TRACKER?retryWrites=true&w=majority&appName=Cluster0'
 
 ).then(() => {
     console.log('DATABASE CONNECTED SUCCESSFULLY');
@@ -51,6 +59,9 @@ mongoose.connect('mongodb+srv://milangthomas00:kunaguero16@cluster0.xdf6qpy.mong
 });
 
 app.use(express.json());
+app.use(router); 
+app.use('/api', expenseRoutes);
+app.use('/api', budgetRoutes);
 
 
 

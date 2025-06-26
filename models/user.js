@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
-    user: {
+    name: {
         type: String
     },
     email: {
@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema({
     },
     phone: {
         type: Number
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     },
     status: {
         type: Boolean,
