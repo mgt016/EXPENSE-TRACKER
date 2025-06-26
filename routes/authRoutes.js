@@ -8,8 +8,8 @@ const {User} = require('../models/user');
 const {Otp} = require('../models/otp');
 const {Token} = require('../models/token');
 const sendMail = require('../controllers/email');
+const { jwtsecret } = require('../controllers/config');
 
-const jwtsecret = 'your_secret_key';
 
 router.post('/user/register', async (req, res) => {
     try {

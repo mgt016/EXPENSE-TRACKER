@@ -12,6 +12,10 @@ const budgetSchema = new mongoose.Schema({
     },
     year: {
         type: Number
+    },
+    status: {
+        type: Boolean,
+        default: true
     }
 });
 

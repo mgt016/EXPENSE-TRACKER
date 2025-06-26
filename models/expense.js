@@ -22,6 +22,10 @@ note: {
 created_at: { 
     type: Date, 
     default: Date.now 
+},
+status: {
+    type: Boolean,
+    default: true
 }
 });
 

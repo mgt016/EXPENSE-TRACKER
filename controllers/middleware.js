@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const jwtsecret = 'your_jwt_secret';
+const { jwtsecret } = require('../controllers/config');
 
 function isUser(req, res, next) {
   const token = req.headers['token']; // expecting header: token = <JWT>
@@ -13,6 +13,8 @@ function isUser(req, res, next) {
     req.user = decoded; // sets req.user.LoginId and other data in token
     next();
   } catch (err) {
+    console.log(err);
+    
     return res.status(403).json({ message: 'Forbidden: Invalid or expired token' });
   }
 }
