@@ -27,6 +27,7 @@ router.post('/categories/init', async (req, res) => {
 
     res.status(201).json({ success: true, message: 'Categories initialized' });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Init failed', error: err });
   }
 });
@@ -37,6 +38,7 @@ router.get('/categories', async (req, res) => {
     const categories = await Category.find().sort('name');
     res.status(200).json({ success: true, data: categories });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Failed to fetch categories', error: err });
   }
 });
@@ -64,6 +66,7 @@ router.post('/expenses', isUser, async (req, res) => {
     await expense.save();
     res.status(201).json({ success: true, data: expense });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Failed to add expense', error: err });
   }
 });
@@ -148,6 +151,7 @@ router.get('/expenses', isUser, async (req, res) => {
     res.json({ success: true, data: expenses });
 
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Failed to fetch expenses', error: err });
   }
 });
@@ -161,6 +165,7 @@ router.get('/expenses/:id', isUser, async (req, res) => {
     if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
     res.json({ success: true, data: expense });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Failed to fetch expense', error: err });
   }
 });
@@ -176,6 +181,7 @@ router.put('/expenses/:id', isUser, async (req, res) => {
     if (!updated) return res.status(404).json({ success: false, message: 'Expense not found or unauthorized' });
     res.json({ success: true, data: updated });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Failed to update expense', error: err });
   }
 });
@@ -194,9 +200,13 @@ router.delete('/expenses/:id', isUser, async (req, res) => {
 
     res.json({ success: true, message: 'Expense deleted' });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Failed to delete expense', error: err });
   }
 });
+
+
+
 
 
 

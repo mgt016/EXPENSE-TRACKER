@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { Expense } = require('../models/expense');
 const isUser = require('../controllers/middleware');
+const mongoose = require('mongoose');
+
 
 const categoryColors = {
   "Food & Drinks": "#f94144",
@@ -17,6 +19,13 @@ const categoryColors = {
   "Others": "#34495e"
 };
 
+const today = new Date();
+today.setHours(23, 59, 59, 999);
+
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(today.getDate() - 30);
+thirtyDaysAgo.setHours(0, 0, 0, 0);
+
 // 📊 GET Pie Chart Data (Last 30 Days)
 router.get('/analytics/piechart', isUser, async (req, res) => {
   try {
@@ -25,13 +34,13 @@ router.get('/analytics/piechart', isUser, async (req, res) => {
     thirtyDaysAgo.setDate(today.getDate() - 30);
 
     const expenses = await Expense.aggregate([
-      {
+    {
         $match: {
-          user: req.user.LoginId,
-          status: true,
-          date: { $gte: thirtyDaysAgo, $lte: today }
+            user: new mongoose.Types.ObjectId(req.user.LoginId),
+            status: true,
+            date: { $gte: thirtyDaysAgo, $lte: today }
         }
-      },
+    },
       {
         $group: {
           _id: "$category",
@@ -54,6 +63,7 @@ router.get('/analytics/piechart', isUser, async (req, res) => {
 
     res.status(200).json({ success: true, data: result });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: 'Failed to generate pie chart data', error: err });
   }
 });

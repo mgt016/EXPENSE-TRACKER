@@ -160,7 +160,7 @@ router.post('/user/login', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
   try {
-    const token = req.headers['token']; // ✅ Direct token from headers
+    const token = req.headers['token']; // Direct token from headers
 
     if (!token) {
       return res.status(400).json({ status: false, message: 'Token not provided' });

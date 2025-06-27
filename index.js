@@ -12,6 +12,8 @@ const router = require('./routes/authRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const goalRoutes = require('./routes/goalRoutes');
+
 
 
 
@@ -64,6 +66,8 @@ app.use(router);
 app.use('/api', expenseRoutes);
 app.use('/api', budgetRoutes);
 app.use('/api', analyticsRoutes);
+app.use('/api', goalRoutes);
+
 
 
 
