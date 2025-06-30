@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const {google} = require('googleapis');
 const OAuth = google.auth.OAuth2;
-const env = require('./config.gmail.env');
+const env = require('../controllers/config.gmail.env');
 
 
 
@@ -16,10 +16,10 @@ oauth2Client.setCredentials({
 });
 
 
-const accessToken = oauth2Client.getAccessToken();
 
 
 async function sendTextEmail(to,subject,body,attachments) {
+    const accessToken = await oauth2Client.getAccessToken();
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -53,4 +53,6 @@ async function sendTextEmail(to,subject,body,attachments) {
     });
 }
 
-module.exports.sendTextEmail = sendTextEmail;
+
+module.exports = { sendTextEmail };
+

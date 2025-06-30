@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Goal } = require('../models/goal');
-const isUser = require('../controllers/middleware');
+const { Goal } = require('../../../models/goal');
+const { isUser } = require('../../../controllers/middleware');
 
 // POST: Create goal
 router.post('/goals', isUser, async (req, res) => {

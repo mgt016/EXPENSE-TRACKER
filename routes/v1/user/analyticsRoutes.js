@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Expense } = require('../models/expense');
-const isUser = require('../controllers/middleware');
+const { Expense } = require('../../../models/expense');
+const { isUser } = require('../../../controllers/middleware');
 const mongoose = require('mongoose');
 
 

@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
     status: {
         type: Boolean,
         default: true
@@ -26,5 +31,5 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-const User = mongoose.model('Login', userSchema)
+const User = mongoose.model('User', userSchema)
 module.exports = {User};

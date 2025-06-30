@@ -8,11 +8,12 @@ var useragent = require('express-useragent');
 
 
 
-const router = require('./routes/authRoutes');
-const expenseRoutes = require('./routes/expenseRoutes');
-const budgetRoutes = require('./routes/budgetRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
-const goalRoutes = require('./routes/goalRoutes');
+const router = require('./routes/v1/user/authRoutes');
+const routerAdmin = require('./routes/v1/admin/adminRoutes');
+const expenseRoutes = require('./routes/v1/user/expenseRoutes');
+const budgetRoutes = require('./routes/v1/user/budgetRoutes');
+const analyticsRoutes = require('./routes/v1/user/analyticsRoutes');
+const goalRoutes = require('./routes/v1/user/goalRoutes');
 
 
 
@@ -63,6 +64,7 @@ mongoose.connect('mongodb+srv://milangthomas00:kunaguero16@cluster0.xdf6qpy.mong
 
 app.use(express.json());
 app.use(router); 
+app.use(routerAdmin);
 app.use('/api', expenseRoutes);
 app.use('/api', budgetRoutes);
 app.use('/api', analyticsRoutes);
