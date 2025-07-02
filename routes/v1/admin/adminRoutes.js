@@ -8,7 +8,7 @@ const path = require('path');
 
 
 const { isUser, isAdmin } = require('../../../controllers/middleware');
-const { sendTextEmail, sendHtmlEmail } = require('../../../controllers/email');
+const { sendTextEmail } = require('../../../controllers/email');
 
 
 const { jwtsecret } = require('../../../controllers/config');
@@ -21,27 +21,59 @@ const { Goal } = require('../../../models/goal');
 const { Budget } = require('../../../models/budget');
 const { Token } = require('../../../models/token');
 
-//  Admin Register (one-time use, ideally)
+
+// Admin Register 
 router.post('/admin/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ status: false, message: 'All fields are required' });
+      return res.status(400).json({ status: false, message: 'All fields are required!' });
+    }
+
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(name)) {
+      return res.status(400).json({ status: false, message: 'Name must contain only alphabets!' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ status: false, message: 'Invalid email format!' });
+    }
+
+    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
+    if (!passRegex.test(password)) {
+      return res.status(400).json({
+        status: false,
+        message: 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.'
+      });
     }
 
     const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: 'Admin already exists' });
+    if (existing) {
+      return res.status(400).json({ status: false, message: 'Admin already exists!' });
+    }
 
     const hash = await bcryptjs.hash(password, 10);
-    const admin = new User({ name, email, password: hash, phone: 0, isVerified: true, role: 'admin' });
+    const admin = new User({
+      name,
+      email,
+      password: hash,
+      phone: 0, // default since phone not collected
+      isVerified: true, // verified by default
+      role: 'admin'
+    });
+
     await admin.save();
 
-    res.status(201).json({ message: 'Admin registered successfully' });
+    return res.status(201).json({ status: true, message: 'Admin registered successfully' });
+
   } catch (err) {
-    res.status(500).json({ message: 'Admin registration failed', error: err });
+    console.error('Admin registration error:', err);
+    return res.status(500).json({ status: false, message: 'Admin registration failed' });
   }
 });
+
 
 // Admin Login (with OTP generation)
 router.post('/admin/login', async (req, res) => {
@@ -140,6 +172,121 @@ router.post('/admin/logout', async (req, res) => {
     res.status(500).json({ message: 'Logout failed', error: err });
   }
 });
+
+// Admin Profile Update — Only updates fields provided in the request
+router.put('/admin/update-profile', isUser, isAdmin, async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    const adminId = req.user.LoginId;
+
+    const admin = await User.findOne({ _id: adminId, role: 'admin' });
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found or unauthorized' });
+    }
+
+    if (name) admin.name = name;
+    if (email) admin.email = email;
+    if (phone) admin.phone = phone;
+
+    await admin.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      updated: {
+        name: admin.name,
+        email: admin.email,
+        phone: admin.phone
+      }
+    });
+
+  } catch (err) {
+    console.error('Admin profile update failed:', err);
+    return res.status(500).json({ message: 'Failed to update profile' });
+  }
+});
+
+
+//Change password using old password
+router.put('/admin/change-password', isUser, isAdmin, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword)
+      return res.status(400).json({ message: 'Both old and new password required' });
+
+    const admin = await User.findById(req.user.LoginId);
+    const match = await bcryptjs.compare(oldPassword, admin.password);
+    if (!match)
+      return res.status(400).json({ message: 'Old password incorrect' });
+
+    const newHash = await bcryptjs.hash(newPassword, 10);
+    admin.password = newHash;
+    await admin.save();
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Admin password change failed:', err);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+});
+
+
+//reset password or foreget password
+router.post('/admin/reset-password/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const admin = await User.findOne({ email, role: 'admin' });
+
+    if (!admin)
+      return res.status(404).json({ message: 'Admin not found' });
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await Otp.deleteMany({ email });
+    await new Otp({ LoginId: admin._id, email, otp: otpCode, expiresAt }).save();
+
+    const subject = 'OTP for Admin Password Reset';
+    const body = `Hi Admin,\n\nYour OTP for resetting password is ${otpCode}. It is valid for 5 minutes.\n\n- Expense Tracker`;
+
+    await sendTextEmail(email, subject, body, []);
+    return res.json({ success: true, message: 'OTP sent to email' });
+  } catch (err) {
+    console.error('Admin password reset OTP failed:', err);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+});
+
+//Verify OTP & Reset Password
+router.post('/admin/reset-password/verify-otp', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const otpRecord = await Otp.findOne({ email, otp });
+
+    if (!otpRecord)
+      return res.status(400).json({ message: 'Invalid OTP' });
+
+    if (otpRecord.expiresAt < new Date()) {
+      await Otp.deleteOne({ _id: otpRecord._id });
+      return res.status(400).json({ message: 'OTP expired' });
+    }
+
+    const admin = await User.findById(otpRecord.LoginId);
+    if (!admin || admin.role !== 'admin')
+      return res.status(404).json({ message: 'Admin not found' });
+
+    admin.password = await bcryptjs.hash(newPassword, 10);
+    await admin.save();
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    return res.json({ success: true, message: 'Password reset successful' });
+  } catch (err) {
+    console.error('Admin OTP reset failed:', err);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+});
+
 
 //  View all users
 router.get('/admin/users', isUser, isAdmin, async (req, res) => {
