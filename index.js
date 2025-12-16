@@ -53,7 +53,7 @@ app.use((req,res,next) => {
     
 });
 
-mongoose.connect('mongodb+srv://milangthomas00:kunaguero16@cluster0.xdf6qpy.mongodb.net/EXPENSE-TRACKER?retryWrites=true&w=majority&appName=Cluster0'
+mongoose.connect('mongodburl'
 
 ).then(() => {
     console.log('DATABASE CONNECTED SUCCESSFULLY');
